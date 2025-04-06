@@ -12,7 +12,7 @@ app = Flask(__name__)
 yolo_model = YOLO("yolov8n.pt")
 gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")  # Placeholder
 
-# Real transcription using OpenAI Whisper API (requires OPENAI_API_KEY env variable)
+# Real transcription using OpenAI Whisper API
 def transcribe_with_openai(video_path):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -37,7 +37,7 @@ def analyze():
     temp_path = f"/tmp/{file.filename}"
     file.save(temp_path)
 
-    # Transcribe audio with OpenAI fallback
+    # Transcribe
     transcript = transcribe_with_openai(temp_path)
     keywords = gpt_pipeline(transcript[:512]) if transcript else []
 
