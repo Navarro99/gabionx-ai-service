@@ -1,7 +1,0 @@
-flask
-opencv-python
-requests
-moviepy
-ultralytics
-transformers
-torch
