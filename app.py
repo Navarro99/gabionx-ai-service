@@ -6,7 +6,7 @@ import cv2
 import requests
 from ultralytics import YOLO
 from transformers import pipeline
-from moviepy.editor import VideoFileClip
+
 
 app = Flask(__name__)
 
