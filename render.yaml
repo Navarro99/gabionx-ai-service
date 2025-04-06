@@ -2,8 +2,9 @@ services:
   - type: web
     name: video-analysis-api
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "pip install flask && python app.py"
+    buildCommand: "./build.sh"
+    startCommand: "python app.py"
     envVars:
       - key: OPENAI_API_KEY
         value: your_openai_key_here
+

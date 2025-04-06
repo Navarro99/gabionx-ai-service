@@ -1,8 +1,5 @@
 # Flask-based AI Microservice for Video + Audio Analysis (Force Flask Install)
 
-import subprocess
-subprocess.run(["pip", "install", "flask"])
-
 from flask import Flask, request, jsonify
 import os
 import cv2
