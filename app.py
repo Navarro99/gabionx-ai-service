@@ -8,11 +8,10 @@ from transformers import pipeline
 from moviepy.editor import VideoFileClip
 
 app = Flask(__name__)
-CORS(app)  # 👈 Enables CORS for all routes
+CORS(app, origins="*")  # 👈 Critical: Enables CORS for all origins
 
-# Load models
 yolo_model = YOLO("yolov8n.pt")
-gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")  # Simplified example
+gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")  # Simplified
 
 def transcribe_with_openai(video_path):
     api_key = os.getenv("OPENAI_API_KEY")
@@ -41,11 +40,9 @@ def analyze():
     temp_path = f"/tmp/{file.filename}"
     file.save(temp_path)
 
-    # Transcribe audio
     transcript = transcribe_with_openai(temp_path)
     keywords = gpt_pipeline(transcript[:512]) if transcript else []
 
-    # Extract frames
     frames_dir = "/tmp/frames/"
     os.makedirs(frames_dir, exist_ok=True)
     cap = cv2.VideoCapture(temp_path)
@@ -62,7 +59,6 @@ def analyze():
         count += 1
     cap.release()
 
-    # Detect objects
     detected_objects = {}
     for path in frame_paths:
         detections = yolo_model(path)
