@@ -8,15 +8,16 @@ from transformers import pipeline
 from moviepy.editor import VideoFileClip
 
 app = Flask(__name__)
-CORS(app, origins="*")  # 👈 Critical: Enables CORS for all origins
+CORS(app)  # ✅ THIS LINE enables CORS support
 
+# Load models
 yolo_model = YOLO("yolov8n.pt")
-gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")  # Simplified
+gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")
 
 def transcribe_with_openai(video_path):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        return "[No OpenAI API key provided]"
+        return "[Missing OpenAI API key]"
 
     try:
         with open(video_path, "rb") as audio_file:
@@ -27,27 +28,29 @@ def transcribe_with_openai(video_path):
                 data={"model": "whisper-1"}
             )
             response.raise_for_status()
-            return response.json().get("text", "[No transcript found]")
+            return response.json().get("text", "")
     except Exception as e:
-        return f"[Transcription error: {str(e)}]"
+        return f"[Transcription failed: {str(e)}]"
 
-@app.route('/analyze', methods=['POST'])
+@app.route("/analyze", methods=["POST"])
 def analyze():
-    file = request.files.get('video')
+    file = request.files.get("video")
     if not file:
-        return jsonify({"error": "No video file provided"}), 400
+        return jsonify({"error": "No video uploaded"}), 400
 
-    temp_path = f"/tmp/{file.filename}"
-    file.save(temp_path)
+    path = f"/tmp/{file.filename}"
+    file.save(path)
 
-    transcript = transcribe_with_openai(temp_path)
+    transcript = transcribe_with_openai(path)
     keywords = gpt_pipeline(transcript[:512]) if transcript else []
 
     frames_dir = "/tmp/frames/"
     os.makedirs(frames_dir, exist_ok=True)
-    cap = cv2.VideoCapture(temp_path)
+
+    cap = cv2.VideoCapture(path)
     frame_paths = []
     count = 0
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -59,17 +62,17 @@ def analyze():
         count += 1
     cap.release()
 
-    detected_objects = {}
-    for path in frame_paths:
-        detections = yolo_model(path)
+    detected = {}
+    for frame in frame_paths:
+        detections = yolo_model(frame)
         labels = [yolo_model.names[int(box.cls)] for box in detections[0].boxes] if detections[0].boxes else []
-        detected_objects[os.path.basename(path)] = labels
+        detected[os.path.basename(frame)] = labels
 
     return jsonify({
         "transcript": transcript,
         "keywords": keywords,
-        "detectedObjects": detected_objects
+        "detectedObjects": detected
     })
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
