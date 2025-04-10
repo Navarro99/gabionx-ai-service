@@ -1,8 +1,7 @@
 flask
+flask-cors
+ultralytics
+transformers
+moviepy
 requests
 opencv-python
-moviepy
-ultralytics
-transformers==4.31.0
-torch
-flask-cors
