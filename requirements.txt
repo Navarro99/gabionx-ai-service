@@ -2,6 +2,5 @@ flask
 flask-cors
 ultralytics
 transformers
-moviepy
 requests
 opencv-python
