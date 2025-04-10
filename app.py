@@ -5,10 +5,9 @@ import cv2
 import requests
 from ultralytics import YOLO
 from transformers import pipeline
-from moviepy.editor import VideoFileClip
 
 app = Flask(__name__)
-CORS(app)  # ✅ THIS LINE enables CORS support
+CORS(app)  # ✅ Enables CORS for all origins
 
 # Load models
 yolo_model = YOLO("yolov8n.pt")
