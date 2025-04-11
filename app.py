@@ -9,9 +9,6 @@ from transformers import pipeline
 app = Flask(__name__)
 CORS(app)  # Enables CORS for all origins
 
-# 🔍 DEBUG: Confirm if API key is being loaded
-print("🔍 OPENAI_API_KEY loaded:", os.getenv("OPENAI_API_KEY"))
-
 # Load models
 yolo_model = YOLO("yolov8n.pt")
 gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")
@@ -20,6 +17,9 @@ def transcribe_with_openai(video_path):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return "[Missing OpenAI API key]"
+
+    # ✅ Safe log instead of printing the key
+    print("🔍 OPENAI_API_KEY loaded successfully.")
 
     try:
         with open(video_path, "rb") as audio_file:
