@@ -7,7 +7,10 @@ from ultralytics import YOLO
 from transformers import pipeline
 
 app = Flask(__name__)
-CORS(app)  # ✅ Enables CORS for all origins
+CORS(app)  # Enables CORS for all origins
+
+# 🔍 DEBUG: Confirm if API key is being loaded
+print("🔍 OPENAI_API_KEY loaded:", os.getenv("OPENAI_API_KEY"))
 
 # Load models
 yolo_model = YOLO("yolov8n.pt")
