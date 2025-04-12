@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import cv2
+import requests
 from ultralytics import YOLO
 from transformers import pipeline
 
@@ -12,22 +13,46 @@ CORS(app)
 yolo_model = YOLO("yolov8n.pt")
 gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")
 
-def transcribe_with_openai(video_path):
-    # This function is kept for future use but not called below.
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        return "[Missing OpenAI API key]"
+# AssemblyAI configuration
+ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
+ASSEMBLYAI_UPLOAD_URL = "https://api.assemblyai.com/v2/upload"
+ASSEMBLYAI_TRANSCRIBE_URL = "https://api.assemblyai.com/v2/transcript"
+
+headers = {
+    "authorization": ASSEMBLYAI_API_KEY,
+    "content-type": "application/json"
+}
+
+def transcribe_with_assemblyai(video_path):
+    if not ASSEMBLYAI_API_KEY:
+        return "[Missing AssemblyAI API key]"
 
     try:
-        with open(video_path, "rb") as audio_file:
-            response = requests.post(
-                "https://api.openai.com/v1/audio/transcriptions",
-                headers={"Authorization": f"Bearer {api_key}"},
-                files={"file": audio_file},
-                data={"model": "whisper-1"}
+        # Step 1: Upload the video file
+        with open(video_path, 'rb') as f:
+            upload_res = requests.post(
+                ASSEMBLYAI_UPLOAD_URL,
+                headers={"authorization": ASSEMBLYAI_API_KEY},
+                files={"file": f}
             )
-            response.raise_for_status()
-            return response.json().get("text", "")
+        upload_url = upload_res.json()["upload_url"]
+
+        # Step 2: Start the transcription job
+        transcribe_res = requests.post(
+            ASSEMBLYAI_TRANSCRIBE_URL,
+            headers=headers,
+            json={"audio_url": upload_url}
+        )
+        transcript_id = transcribe_res.json()["id"]
+
+        # Step 3: Poll for completion
+        polling_endpoint = f"{ASSEMBLYAI_TRANSCRIBE_URL}/{transcript_id}"
+        while True:
+            poll_res = requests.get(polling_endpoint, headers=headers).json()
+            if poll_res["status"] == "completed":
+                return poll_res["text"]
+            elif poll_res["status"] == "error":
+                return f"[AssemblyAI Error: {poll_res['error']}]"
     except Exception as e:
         return f"[Transcription failed: {str(e)}]"
 
@@ -40,9 +65,8 @@ def analyze():
     path = f"/tmp/{file.filename}"
     file.save(path)
 
-    # 🔁 SKIP OpenAI and use mock transcript
-    transcript = "[Mock transcript: Whisper skipped due to rate limit]"
-    keywords = gpt_pipeline(transcript[:512]) if transcript else []
+    transcript = transcribe_with_assemblyai(path)
+    keywords = gpt_pipeline(transcript[:512]) if transcript and not transcript.startswith("[") else []
 
     frames_dir = "/tmp/frames/"
     os.makedirs(frames_dir, exist_ok=True)
