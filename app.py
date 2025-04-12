@@ -2,24 +2,21 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import cv2
-import requests
 from ultralytics import YOLO
 from transformers import pipeline
 
 app = Flask(__name__)
-CORS(app)  # Enables CORS for all origins
+CORS(app)
 
 # Load models
 yolo_model = YOLO("yolov8n.pt")
 gpt_pipeline = pipeline("text-classification", model="openai-community/gpt2")
 
 def transcribe_with_openai(video_path):
+    # This function is kept for future use but not called below.
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return "[Missing OpenAI API key]"
-
-    # ✅ Safe log instead of printing the key
-    print("🔍 OPENAI_API_KEY loaded successfully.")
 
     try:
         with open(video_path, "rb") as audio_file:
@@ -43,7 +40,8 @@ def analyze():
     path = f"/tmp/{file.filename}"
     file.save(path)
 
-    transcript = transcribe_with_openai(path)
+    # 🔁 SKIP OpenAI and use mock transcript
+    transcript = "[Mock transcript: Whisper skipped due to rate limit]"
     keywords = gpt_pipeline(transcript[:512]) if transcript else []
 
     frames_dir = "/tmp/frames/"
