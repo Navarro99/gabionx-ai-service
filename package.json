@@ -1,0 +1,23 @@
+{
+  "name": "gabionx-ai-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Navarro99/gabionx-ai-service.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Navarro99/gabionx-ai-service/issues"
+  },
+  "homepage": "https://github.com/Navarro99/gabionx-ai-service#readme",
+  "description": "",
+  "dependencies": {
+    "assemblyai": "^4.9.0"
+  }
+}

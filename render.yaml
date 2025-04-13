@@ -7,5 +7,7 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         value: your_openai_key_here
+      - key: ASSEMBLYAI_API_KEY
+        value: your_assemblyai_api_key_here
 
 
